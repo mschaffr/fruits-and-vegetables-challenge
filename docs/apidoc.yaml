@@ -1,0 +1,173 @@
+openapi: 3.1.0
+info:
+  title: Fruits and Vegetables
+  description: Fruits and Vegetables
+  version: 1.0.0
+servers:
+  - url: 'https'
+paths:
+  /foods:
+    get:
+      summary: Get all foods
+      description: Retrieve a list of all foods.
+      parameters:
+        - $ref: "#/components/parameters/nameParam"
+        - $ref: "#/components/parameters/quantityParam"
+        - $ref: "#/components/parameters/unitParam"
+        - $ref: "#/components/parameters/typeParam"
+      responses:
+        '200':
+          description: A list of foods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Food'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        description: Total number of food items
+                        example: 100
+                      limit:
+                        type: integer
+                        description: Number of items per page
+                        example: 10
+                      offset:
+                        type: integer
+                        description: Offset for pagination
+                        example: 0
+    post:
+      summary: Add food item
+      description: Add a new food record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '201':
+          description: Food created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Food'
+        '400':
+          description: Bad request, invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input data
+
+components:
+  parameters:
+    nameParam:
+      name: name
+      in: query
+      description: Name of the food to filter by
+      required: false
+      schema:
+        type: string
+    quantityParam:
+      name: qty
+      in: query
+      style: deepObject
+      description: Quantity of the food to filter by
+      required: false
+      schema:
+        $ref: '#/components/schemas/RangeFilterNumber'
+    unitParam:
+      name: unit
+      in: query
+      description: Choice of unit measurement
+      required: false
+      schema:
+        type: string
+        enum:
+          - kg
+          - g
+    typeParam:
+      name: type
+      in: query
+      description: Type of food to filter by
+      required: false
+      schema:
+        type: string
+        enum:
+          - fruit
+          - vegetable
+
+  schemas:
+    RangeFilterNumber:
+      type: object
+      properties:
+        lt:
+          type: integer
+        lte:
+          type: integer
+        gt:
+          type: integer
+        gte:
+          type: integer
+        eq:
+          type: integer
+
+    Uid:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426
+          description: Unique identifier for the item
+          required: true
+    Item:
+      type: object
+      required:
+        - name
+        - type
+        - quantity
+        - unit
+      properties:
+        name:
+          type: string
+          example: Apple
+          description: Name of the food item
+          required: true
+        type:
+          type: string
+          example: fruit
+          description: Type of food item
+          enum:
+            - fruit
+            - vegetable
+          required: true
+        quantity:
+          type: integer
+          example: 10
+          required: true
+        unit:
+          type: string
+          example: g
+          description: Unit of measurement for the food item
+          enum:
+            - kg
+            - g
+          required: true
+    Food:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Uid'
+        - $ref: '#/components/schemas/Item'
